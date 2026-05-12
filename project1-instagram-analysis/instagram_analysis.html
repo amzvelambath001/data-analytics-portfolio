@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Instagram Performance Analysis — Amritha VR</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --surface: #161616;
+    --card: #1e1e1e;
+    --border: #2a2a2a;
+    --accent: #ff6b35;
+    --accent2: #ffd166;
+    --accent3: #06d6a0;
+    --text: #f0ede8;
+    --muted: #888;
+    --reel: #ff6b35;
+    --photo: #ffd166;
+    --carousel: #06d6a0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+
+  .page {
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  /* HEADER */
+  .header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 40px;
+    margin-bottom: 48px;
+    position: relative;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .header-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .badge {
+    background: var(--accent);
+    color: #000;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 2px;
+  }
+
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    line-height: 1.15;
+    margin: 20px 0 12px;
+    color: var(--text);
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .header-sub {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+    margin-top: 24px;
+  }
+
+  .header-sub-item { display: flex; flex-direction: column; gap: 4px; }
+  .header-sub-item .val {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  /* SECTIONS */
+  .section {
+    margin-bottom: 48px;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .section:nth-child(2) { animation-delay: 0.1s; }
+  .section:nth-child(3) { animation-delay: 0.2s; }
+  .section:nth-child(4) { animation-delay: 0.3s; }
+  .section:nth-child(5) { animation-delay: 0.4s; }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .section-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+  }
+
+  h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .divider {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* QUESTION CARD */
+  .question-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    padding: 24px 28px;
+    border-radius: 4px;
+  }
+
+  .question-card p {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.2rem;
+    font-style: italic;
+    line-height: 1.6;
+    color: var(--text);
+  }
+
+  /* DATA SUMMARY */
+  .data-pills {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .pill {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 10px 18px;
+    border-radius: 100px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .pill span { color: var(--text); font-weight: 500; }
+
+  /* FINDINGS */
+  .findings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+  }
+
+  .finding-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+
+  .finding-card:hover {
+    transform: translateY(-2px);
+    border-color: #3a3a3a;
+  }
+
+  .finding-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .finding-card.reel::before { background: var(--reel); }
+  .finding-card.photo::before { background: var(--photo); }
+  .finding-card.time::before { background: var(--accent3); }
+  .finding-card.surprise::before { background: #a78bfa; }
+
+  .finding-icon {
+    font-size: 24px;
+    margin-bottom: 12px;
+  }
+
+  .finding-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .finding-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.5rem;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .finding-card.reel .finding-value { color: var(--reel); }
+  .finding-card.photo .finding-value { color: var(--photo); }
+  .finding-card.time .finding-value { color: var(--accent3); }
+  .finding-card.surprise .finding-value { color: #a78bfa; font-size: 1.1rem; }
+
+  .finding-detail {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* METRICS TABLE */
+  .metrics-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .metrics-table th {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .metrics-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #1a1a1a;
+    color: var(--text);
+  }
+
+  .metrics-table tr:last-child td { border-bottom: none; }
+  .metrics-table tr:hover td { background: #191919; }
+
+  .type-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+  }
+
+  .bar-cell { min-width: 120px; }
+
+  .bar-wrap {
+    background: var(--border);
+    border-radius: 2px;
+    height: 6px;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 1s ease;
+  }
+
+  .highlight { font-weight: 700; }
+
+  /* RECOMMENDATION */
+  .rec-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  @media (max-width: 560px) { .rec-grid { grid-template-columns: 1fr; } }
+
+  .rec-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 24px;
+  }
+
+  .rec-goal {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .rec-action {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.1rem;
+    color: var(--text);
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+
+  .rec-why {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .rec-tag {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 4px 10px;
+    border-radius: 2px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+  }
+
+  .rec-tag.orange { background: rgba(255,107,53,0.15); color: var(--reel); }
+  .rec-tag.yellow { background: rgba(255,209,102,0.15); color: var(--photo); }
+
+  /* FOOTER */
+  .footer {
+    border-top: 1px solid var(--border);
+    padding-top: 32px;
+    margin-top: 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    animation: fadeUp 0.6s 0.5s ease both;
+  }
+
+  .footer-left { display: flex; flex-direction: column; gap: 4px; }
+  .footer-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.1rem;
+    color: var(--text);
+  }
+
+  .portfolio-note {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent3);
+    letter-spacing: 0.08em;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-meta">
+      <span class="label">Data Analytics Project 01</span>
+      <span class="badge">Beginner Portfolio</span>
+    </div>
+    <h1>Instagram <em>Performance</em><br>Analysis</h1>
+    <div class="header-sub">
+      <div class="header-sub-item">
+        <span class="label">Prepared by</span>
+        <span class="val">Amritha VR</span>
+      </div>
+      <div class="header-sub-item">
+        <span class="label">Date</span>
+        <span class="val">May 2026</span>
+      </div>
+      <div class="header-sub-item">
+        <span class="label">Tool Used</span>
+        <span class="val">Excel / Google Sheets</span>
+      </div>
+      <div class="header-sub-item">
+        <span class="label">Posts Analyzed</span>
+        <span class="val">10 posts</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- BUSINESS QUESTION -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2>Business Question</h2>
+      <div class="divider"></div>
+    </div>
+    <div class="question-card">
+      <p>"Our Instagram engagement has been dropping for 3 months. What content type and posting time drives the best performance?"</p>
+    </div>
+  </div>
+
+  <!-- DATA -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2>Data Used</h2>
+      <div class="divider"></div>
+    </div>
+    <div class="data-pills">
+      <div class="pill"><span>10</span> Instagram Posts</div>
+      <div class="pill"><span>3</span> Content Types</div>
+      <div class="pill">Likes, Comments, Saves tracked</div>
+      <div class="pill">Reach per post tracked</div>
+      <div class="pill">Engagement Rate calculated</div>
+    </div>
+  </div>
+
+  <!-- KEY FINDINGS -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2>Key Findings</h2>
+      <div class="divider"></div>
+    </div>
+    <div class="findings-grid">
+      <div class="finding-card reel">
+        <div class="finding-icon">📈</div>
+        <div class="finding-label">Highest Reach</div>
+        <div class="finding-value">Reels</div>
+        <div class="finding-detail">Average reach of 3,850 per post — 3× more than Photos</div>
+      </div>
+      <div class="finding-card photo">
+        <div class="finding-icon">💬</div>
+        <div class="finding-label">Highest Engagement Rate</div>
+        <div class="finding-value">Photos</div>
+        <div class="finding-detail">18.3% avg engagement rate — outperforming Reels (16.3%) and Carousels (16.0%)</div>
+      </div>
+      <div class="finding-card time">
+        <div class="finding-icon">🕐</div>
+        <div class="finding-label">Best Posting Time</div>
+        <div class="finding-value">Afternoon</div>
+        <div class="finding-detail">Afternoon posts averaged 17.1% engagement vs 16.6% for morning posts</div>
+      </div>
+      <div class="finding-card surprise">
+        <div class="finding-icon">⚡</div>
+        <div class="finding-label">Surprise Finding</div>
+        <div class="finding-value">Photos beat Reels on engagement</div>
+        <div class="finding-detail">Despite lower reach, Photos outperformed on engagement rate — challenging the common assumption that Reels always win</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- METRICS TABLE -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2>Content Type Breakdown</h2>
+      <div class="divider"></div>
+    </div>
+    <table class="metrics-table">
+      <thead>
+        <tr>
+          <th>Content Type</th>
+          <th>Avg Reach</th>
+          <th>Avg Eng. Rate</th>
+          <th class="bar-cell">Reach (relative)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="type-dot" style="background:var(--reel)"></span><span class="highlight">Reels</span></td>
+          <td>3,850</td>
+          <td>16.3%</td>
+          <td class="bar-cell">
+            <div class="bar-wrap"><div class="bar-fill" style="width:100%;background:var(--reel)"></div></div>
+          </td>
+        </tr>
+        <tr>
+          <td><span class="type-dot" style="background:var(--carousel)"></span>Carousels</td>
+          <td>2,733</td>
+          <td>16.0%</td>
+          <td class="bar-cell">
+            <div class="bar-wrap"><div class="bar-fill" style="width:71%;background:var(--carousel)"></div></div>
+          </td>
+        </tr>
+        <tr>
+          <td><span class="type-dot" style="background:var(--photo)"></span>Photos</td>
+          <td>1,117</td>
+          <td><span class="highlight" style="color:var(--photo)">18.3%</span></td>
+          <td class="bar-cell">
+            <div class="bar-wrap"><div class="bar-fill" style="width:29%;background:var(--photo)"></div></div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- RECOMMENDATION -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2>Recommendation</h2>
+      <div class="divider"></div>
+    </div>
+    <div class="rec-grid">
+      <div class="rec-card">
+        <div class="rec-goal">Goal: Brand Awareness</div>
+        <div class="rec-action">Post more Reels in the afternoon</div>
+        <div class="rec-why">Reels deliver 3× the reach of Photos. Afternoon timing shows marginally higher engagement. Best strategy for growing new audiences.</div>
+        <span class="rec-tag orange">Reels · Afternoon</span>
+      </div>
+      <div class="rec-card">
+        <div class="rec-goal">Goal: Community Engagement</div>
+        <div class="rec-action">Post Photos for deeper connections</div>
+        <div class="rec-why">Photos achieve the highest engagement rate (18.3%) despite lower reach — indicating a loyal, highly interactive audience segment.</div>
+        <span class="rec-tag yellow">Photos · Any Time</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-left">
+      <span class="footer-name">Amritha VR</span>
+      <span class="label">Data Analytics · Project 01 of 5</span>
+    </div>
+    <span class="portfolio-note">✦ Portfolio Project — Built from scratch</span>
+  </div>
+
+</div>
+</body>
+</html>
